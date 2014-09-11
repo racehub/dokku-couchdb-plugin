@@ -49,36 +49,44 @@ case "$1" in
     # Stop existing container with the same persistent DB
     ID=$(docker ps | grep "$DB_IMAGE":latest |  awk '{print $1}')
     if [[ ! -z "$ID" ]]; then
+        echo "Killing existing Docker container."
         docker stop $ID > /dev/null
     fi
     # Fork DB image
-    ID=$(docker run -d racehub/couchdb exit 0)
+    ID=$(docker run -d racehub/couchdb echo forking)
     docker wait $ID > /dev/null
     IMAGE=$(docker commit $ID)
     docker tag $IMAGE $DB_IMAGE
+
     # Launch container
-    ID=$(docker run -v $VOLUME -p 5984 -d $DB_IMAGE /opt/start_couch $DB_PASSWORD)
+    ID=$(docker run -v $VOLUME -p 5984 -d $DB_IMAGE couchdb)
     sleep 4
+
     # Store persistent volume
     if [[ ! -f "$DOKKU_ROOT/.couchdb/volume_$APP" ]]; then
-        VOLUME_PATH=$(docker inspect $ID | grep /var/lib/docker/vfs/dir/ | awk '{print $2}' | sed -e's/"//g')
+        VOLUME_PATH=$(docker inspect --format='{{ index .Volumes "/usr/local/var/lib/couchdb" }}' $ID)
         if [[ -z $VOLUME_PATH ]]; then
+            # Ugh, not much info here.
             echo "Your docker version is too old, please update it"
             exit 1
         fi
         echo $VOLUME_PATH > "$DOKKU_ROOT/.couchdb/volume_$APP"
     fi
+
     # Write port for further usage
     PORT=$(docker port $ID 5984 | sed 's/0.0.0.0://')
     echo $PORT > "$DOKKU_ROOT/.couchdb/port_$APP"
+
     # Write IP address for further usage
     IP=$(docker inspect $ID | grep 'IPAddress' | egrep -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
     echo $IP > "$DOKKU_ROOT/.couchdb/ip_$APP"
-    # Add root user
+
+    # Add root user to CouchDB
     HOST="http://localhost:$PORT"
     echo $HOST > "$DOKKU_ROOT/.couchdb/host_$APP"
     DB_PASSWORD=$(cat "$DOKKU_ROOT/.couchdb/pwd_$APP")
     curl -X PUT $HOST/_config/admins/root -d '"$DB_PASSWORD"'
+
     # Link to a potential existing app
     dokku couchdb:link $APP $APP
     echo
@@ -153,6 +161,10 @@ case "$1" in
         dokku config:set $APP "COUCH_URL=http://root:$DB_PASSWORD@$DB_HOST:$PORT"
         dokku config:set $APP "COUCH_USER=root"
         dokku config:set $APP "COUCH_PASSWORD=$DB_PASSWORD"
+
+        # PaddleGuru Only, for fun:
+        dokku config:set $APP "CLOUDANT_URL=http://root:$DB_PASSWORD@$DB_HOST:$PORT"
+
         echo
         echo "-----> $APP linked to $DB_IMAGE database"
     fi

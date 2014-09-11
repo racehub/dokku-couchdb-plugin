@@ -8,7 +8,7 @@ Installation
 ------------
 ```
 cd /var/lib/dokku/plugins
-git clone https://github.com/martin-hewitt/dokku-couchdb-plugin couchdb
+git clone https://github.com/racehub/dokku-couchdb-plugin couchdb
 dokku plugins-install
 ```
 
@@ -57,10 +57,10 @@ remote: -----> Using Ruby version: ruby-2.0.0
 ... blah blah blah ...
 
 remote: -----> Deploying foo ...
-remote: 
+remote:
 remote: -----> App foo linked to couchdb/foo database
-remote:        DATABASE_URL=mysql://root:RDSBYlUrOYMtndKb@172.16.0.104/db
-remote: 
+remote:        COUCH_URL=http://root:RDSBYlUrOYMtndKb@172.16.0.104/foo
+remote:
 remote: -----> Deploy complete!
 remote: -----> Cleaning up ...
 remote: -----> Cleanup complete!
@@ -71,11 +71,6 @@ remote:        http://foo.server
 
 Advanced usage
 --------------
-
-Inititalize the database with SQL statements:
-```
-cat init.sql | dokku couchdb:create foo
-```
 
 Deleting databases:
 ```

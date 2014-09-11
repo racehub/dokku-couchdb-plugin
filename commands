@@ -85,7 +85,7 @@ case "$1" in
     HOST="http://localhost:$PORT"
     echo $HOST > "$DOKKU_ROOT/.couchdb/host_$APP"
     DB_PASSWORD=$(cat "$DOKKU_ROOT/.couchdb/pwd_$APP")
-    curl -X PUT $HOST/_config/admins/root -d '"$DB_PASSWORD"'
+    curl -X PUT $HOST/_config/admins/root -d '"'$DB_PASSWORD'"'
 
     # Link to a potential existing app
     dokku couchdb:link $APP $APP

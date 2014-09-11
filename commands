@@ -78,7 +78,7 @@ case "$1" in
     echo $PORT > "$DOKKU_ROOT/.couchdb/port_$APP"
 
     # Write IP address for further usage
-    IP=$(docker inspect $ID | grep 'IPAddress' | egrep -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    IP=$(docker inspect --format='{{ .NetworkSettings.IPAddress }}' $ID)
     echo $IP > "$DOKKU_ROOT/.couchdb/ip_$APP"
 
     # Add root user to CouchDB

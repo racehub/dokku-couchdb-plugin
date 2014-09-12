@@ -162,9 +162,6 @@ case "$1" in
         dokku config:set $APP "COUCH_USER=root"
         dokku config:set $APP "COUCH_PASSWORD=$DB_PASSWORD"
 
-        # PaddleGuru Only, for fun:
-        dokku config:set $APP "CLOUDANT_URL=http://root:$DB_PASSWORD@$DB_HOST:$PORT"
-
         echo
         echo "-----> $APP linked to $DB_IMAGE database"
     fi

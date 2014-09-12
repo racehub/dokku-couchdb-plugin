@@ -156,7 +156,14 @@ case "$1" in
         fi
         DB_PASSWORD=$(cat "$DOKKU_ROOT/.couchdb/pwd_$APP")
         DB_HOST=$(cat "$DOKKU_ROOT/.couchdb/ip_$APP")
-        PORT=$(cat "$DOKKU_ROOT/.couchdb/port_$APP")
+
+        # Looks like the IP is enough to get the proper forwarded port
+        # from the other container. Leaving this here since any
+        # external process needs this PORT to get at CouchDB ovr the
+        # network.
+        # PORT=$(cat "$DOKKU_ROOT/.couchdb/port_$APP")
+        PORT=5984
+
         # Link database using dokku command
         dokku config:set $APP "COUCH_URL=http://root:$DB_PASSWORD@$DB_HOST:$PORT"
         dokku config:set $APP "COUCH_USER=root"
